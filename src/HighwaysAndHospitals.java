@@ -18,7 +18,8 @@ public class HighwaysAndHospitals {
      */
     public static long cost(int n, int hospitalCost, int highwayCost, int cities[][]) {
         long totalCost = 0;
-        ArrayList<ArrayList<Integer>> cityClusters = new ArrayList<ArrayList<Integer>>();
+        // List to track each city & its root
+        int[] roots = new int[n];
         // Case when building a hospital in every city is cheaper than building any highways
         if (hospitalCost <= highwayCost){
             // What does n represent? I'm assuming it's the number of cities
@@ -26,34 +27,56 @@ public class HighwaysAndHospitals {
         }
         // Case when highway cost < hospital cost
         else{
-            // Go through every city
+            // Perform union find to get the right # of clusters
+
+            // If I set them to 0, will this cause issues??
+            int rootOne = 0;
+            int rootTwo = 0;
             for (int[] city : cities){
-                //
-                boolean addedToCluster = false;
-                for (ArrayList<Integer> cluster : cityClusters){
-                    // If it contains 1 of the 2 listed, cities, add the other
-                    if (cluster.contains(city[0]) && !cluster.contains(city[1])){
-                        cluster.add(city[1]);
-                        addedToCluster = true;
-                        break;
-                    }
-                    else if (cluster.contains(city[1]) && !cluster.contains(city[0])){
-                        cluster.add(city[0]);
-                        addedToCluster = true;
-                        break;
-                    }
-                    // If both have already been added to the cluster
-                    else if (cluster.contains(city[1]) && cluster.contains(city[0])){
-                        addedToCluster = true;
-                    }
+                rootOne = city[0];
+                // while the city is not its own root
+                while (roots[city[0]] != city[0]){
+                    // Identify root for city
+                    rootOne = roots[city[0]];
                 }
-                // If none of the existing clusters contain either city, make a new cluster & add both cities there
-                if (!addedToCluster){
-                    ArrayList<Integer> newCluster = new ArrayList<Integer>();
-                    newCluster.add(city[0]);
-                    newCluster.add(city[1]);
-                    cityClusters.add(newCluster);
+                // While the city is not its own root
+                while (roots[city[1]] != city[1]){
+                    rootTwo = roots[city[1]];
+                    // Path Compression here:
+                    int temp = rootTwo;
+                    roots[city[1]] = temp;
+
+
+
                 }
+                if (rootOne != rootTwo){
+                    // Weight balancing here:
+                    // Find the order of both roots
+                    int orderOne = roots[rootOne];
+                    int orderTwo = roots[rootTwo];
+                    // Set the root of the bigger tree as the root of the smaller tree
+                    if (orderOne > orderTwo){
+                        // Instead of roots[rootOne], could I just say orderOne??
+                        roots[rootTwo] = roots[rootOne];
+                    }
+
+                }
+                // After weight balancing, then add the proper values to the roots[] array
+
+            }
+
+
+
+            // Go through every city
+            for (int i = 0; i < n; i++){
+                // Get the root of each city in pair
+                int root1 = cityClusters[cities[i][0]];
+                int root2 = cityClusters[cities[i][1]];
+                // if the roots are equal, do nothing. If they're not equal, set the topmost root = root1
+                if (root1 != root2){
+
+                }
+
             }
             // TEMPORARILY prints out all clusters for test
             for (ArrayList<Integer> cluster : cityClusters){
