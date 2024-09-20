@@ -12,12 +12,13 @@
 public class HighwaysAndHospitals {
 
     public static long cost(int n, int hospitalCost, int highwayCost, int cities[][]) {
-        // List tracks each city & its root (or its order, if it's its own root)
+        // List maps a root to each city (or its order, if the city is its own root)
         int[] roots = new int[n + 1];
         // Case when hospital cost < highway cost
         if (hospitalCost <= highwayCost){
             return Long.valueOf(hospitalCost) * n;
         }
+
         // Case when highway cost < hospital cost
         // Perform union find to get the right # of clusters
         for (int[] city : cities){
@@ -29,44 +30,19 @@ public class HighwaysAndHospitals {
             while (roots[rootOne] > 0){
                 rootOne = roots[rootOne];
             }
-            // Path compression here:
-            // Make the top root the root for all lower nodes that were just traversed
-            while (roots[rootOneCopy] > 0){
-                int tempRoot = roots[rootOneCopy];
-                roots[rootOneCopy] = rootOne;
-                rootOneCopy = tempRoot;
-            }
+            pathCompression(roots, rootOne, rootOneCopy);
             // While the city is not its own root, aka while its root is positive, identify its root
             while (roots[rootTwo] > 0){
                 rootTwo = roots[rootTwo];
             }
-            // Path compression here:
-            // Make the top root the root for all lower nodes
-            while (roots[rootTwoCopy] > 0){
-                // Set the new root for each city that we traversed previously
-                int tempRoot = roots[rootTwoCopy];
-                roots[rootTwoCopy] = rootTwo;
-                rootTwoCopy = tempRoot;
-            }
-            // Unite both cities/clusters if they are separate
+            pathCompression(roots, rootTwo, rootTwoCopy);
+            // If both cities/clusters are separate (aka don't share a root), unite them
             if (rootOne != rootTwo){
-                // Weight balancing here:
-                // Find the order of both roots
-                int orderOne = roots[rootOne];
-                int orderTwo = roots[rootTwo];
-                // Set the root of the bigger tree as the root of the smaller tree
-                if (orderOne < orderTwo){
-                    // Updates the order of root 1 & root of root 2
-                    roots[rootOne] += (orderTwo - 1);
-                    roots[rootTwo] = rootOne;
-                }
-                else {
-                    // Updates the order of root 2 & root of root 1
-                    roots[rootTwo] += (orderOne - 1);
-                    roots[rootOne] = rootTwo;
-                }
+                // Implement weight balancing:
+                union(roots, rootOne, rootTwo);
             }
         }
+
         // Find # of clusters:
         int numClusters = 0;
         for (int i = 1; i < n + 1; i++){
@@ -76,15 +52,13 @@ public class HighwaysAndHospitals {
             }
         }
 
-        // Calculate cost
+        // Return total cost
         return Long.valueOf(hospitalCost) * numClusters + (n - numClusters) * highwayCost;
     }
 
-    public static void unionFind(){
-
-    }
-    public static void pathCompression(int[] roots, int rootCopy, int root){
-        // Make the top root the root for all lower nodes that were just traversed
+    // Turn the top root into the root for all lower nodes that were just traversed
+    public static void pathCompression(int[] roots, int root, int rootCopy){
+        // While the topmost root hasn't been reached, continue updating the root
         while (roots[rootCopy] > 0){
             int tempRoot = roots[rootCopy];
             roots[rootCopy] = root;
@@ -92,5 +66,20 @@ public class HighwaysAndHospitals {
         }
     }
 
+    // Set the root of the bigger tree as the root of the smaller tree
+    public static void union(int[] roots, int rootOne, int rootTwo){
+        // Find the order of both roots
+        int orderOne = roots[rootOne];
+        int orderTwo = roots[rootTwo];
+        if (orderOne < orderTwo){
+            // Update the order of root 1 & root of root 2
+            roots[rootOne] += (orderTwo - 1);
+            roots[rootTwo] = rootOne;
+        }
+        else {
+            // Update the order of root 2 & root of root 1
+            roots[rootTwo] += (orderOne - 1);
+            roots[rootOne] = rootTwo;
+        }
+    }
 }
-
